@@ -31,7 +31,7 @@ Créer un système capable de :
 ## 🔮 Futur
 - Intégration IA avancée  
 - Simulation de scénarios globaux  
-- Plateforme ouverte  
+- Plateforme ouverte  test
 
 ---
 
