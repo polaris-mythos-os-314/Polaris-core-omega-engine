@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASTROLABE VORTEX R3 — Polaris Mythos OS 314</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Share+Tech+Mono&display=swap');
+:root{
+  --bg:#04050d;--bg2:#080c1a;--bg3:#0c1228;
+  --rim:rgba(160,120,60,.35);--rim2:rgba(200,160,80,.13);
+  --gold:#c8a44a;--gold2:#e8c870;--gold3:rgba(200,164,74,.1);
+  --text:#d0c090;--muted:#6a6040;--dim:#3a3020;
+  --fd:'Cinzel',serif;--fm:'Share Tech Mono',monospace;
+  --green:#40e080;--blue:#4a8fff;--red:#ff5535;--purple:#a060ff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text);font-family:var(--fm);height:100%;overflow:hidden}
+#app{display:grid;grid-template-columns:190px 1fr 210px;grid-template-rows:50px 28px 1fr 34px;height:100vh}
+
+/* ── HEADER ── */
+header{grid-column:1/-1;display:flex;align-items:center;gap:1.2rem;padding:0 1.2rem;
+  border-bottom:1px solid var(--rim);background:linear-gradient(180deg,#090b16,var(--bg));position:relative}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.ht{font-family:var(--fd);font-size:12px;letter-spacing:.25em;color:var(--gold2)}
+.hs{font-size:8px;letter-spacing:.12em;color:var(--muted)}
+.hjd{margin-left:auto;font-size:8px;color:var(--muted);letter-spacing:.06em}
+.live{width:5px;height:5px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 5px var(--green);animation:bl 2.4s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── VIEW TABS ── */
+#tabs{grid-column:1/-1;display:flex;align-items:center;gap:0;
+  border-bottom:1px solid var(--rim2);background:var(--bg2);padding:0 1.2rem}
+.tab{font-family:var(--fd);font-size:8px;letter-spacing:.18em;color:var(--muted);
+  padding:6px 16px;cursor:pointer;border-bottom:2px solid transparent;
+  text-transform:uppercase;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--gold2);border-bottom-color:var(--gold)}
+.tab-sep{width:1px;height:14px;background:var(--rim2);margin:0 2px}
+
+/* ── SIDEBARS ── */
+.pl{border-right:1px solid var(--rim2);background:var(--bg2);padding:.9rem;overflow-y:auto;
+  display:flex;flex-direction:column;gap:.7rem;grid-row:3}
+.pr{border-left:1px solid var(--rim2);background:var(--bg2);padding:.9rem;overflow-y:auto;
+  display:flex;flex-direction:column;gap:.7rem;grid-row:3}
+
+/* ── CANVAS AREA ── */
+#cw{position:relative;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;overflow:hidden;grid-row:3}
+canvas{display:block;position:absolute;top:0;left:0;width:100%;height:100%}
+
+/* ── FOOTER ── */
+footer{grid-column:1/-1;display:flex;align-items:center;gap:.8rem;padding:0 1.2rem;
+  border-top:1px solid var(--rim2);background:var(--bg2);font-size:7.5px;color:var(--muted)}
+footer .fr{margin-left:auto}
+
+/* ── PANEL COMPONENTS ── */
+.pt{font-family:var(--fd);font-size:7.5px;letter-spacing:.2em;color:var(--gold);
+  text-transform:uppercase;border-bottom:1px solid var(--rim2);padding-bottom:.35rem}
+.pr-row{display:flex;align-items:center;gap:7px;padding:3px 5px;border-radius:3px;cursor:pointer;transition:background .15s}
+.pr-row:hover{background:var(--gold3)}
+.pr-row.on{background:rgba(200,164,74,.16);border-left:2px solid var(--gold);padding-left:3px}
+.psym{font-size:12px;width:15px;text-align:center}.pnm{font-size:8.5px;flex:1}
+.psg{font-size:11px}.pdg{font-size:8.5px;color:var(--muted)}
+.ar{display:flex;align-items:center;gap:5px;padding:2px 3px;font-size:8.5px;
+  border-bottom:1px solid rgba(160,120,60,.05)}
+.ar:last-child{border:none}
+.asy{font-size:11px;width:13px;text-align:center}.ap{flex:1;color:var(--muted)}.ao{color:var(--dim);font-size:7.5px}
+.ic{background:rgba(200,164,74,.04);border:1px solid var(--rim2);border-radius:4px;padding:.7rem}
+.icn{font-family:var(--fd);font-size:11px;color:var(--gold2);margin-bottom:3px}
+.icr{display:flex;justify-content:space-between;font-size:8.5px;padding:2px 0;
+  border-bottom:1px solid rgba(160,120,60,.05)}
+.icr:last-child{border:none}.ick{color:var(--muted)}
+.trow{display:flex;align-items:center;gap:7px;font-size:8.5px;color:var(--muted)}
+.tv{flex:1;background:var(--bg3);border:1px solid var(--rim2);border-radius:3px;
+  padding:2px 5px;font-family:var(--fm);font-size:8.5px;color:var(--text);text-align:right}
+input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--rim2);
+  border-radius:1px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:9px;height:9px;
+  border-radius:50%;background:var(--gold)}
+.tgr{display:flex;align-items:center;justify-content:space-between;font-size:8.5px;color:var(--muted)}
+.tog{appearance:none;width:24px;height:12px;background:var(--rim2);border-radius:6px;
+  position:relative;cursor:pointer;transition:background .2s}
+.tog:checked{background:var(--gold)}
+.tog::after{content:'';position:absolute;width:8px;height:8px;border-radius:50%;
+  background:#fff;top:2px;left:2px;transition:left .2s}
+.tog:checked::after{left:14px}
+#ttip{position:fixed;background:var(--bg3);border:1px solid var(--rim);border-radius:3px;
+  padding:5px 9px;font-size:9.5px;color:var(--text);pointer-events:none;opacity:0;
+  transition:opacity .15s;z-index:200;font-family:var(--fm)}
+#ttip.v{opacity:1}
+
+/* ── DIALOGUE PANEL ── */
+#dialogue-wrap{position:absolute;top:0;left:0;right:0;bottom:0;
+  display:none;overflow-y:auto;padding:1.5rem;font-size:10px;line-height:1.7}
+#dialogue-wrap.on{display:block}
+.dlg-line{padding:1px 0}
+.dlg-ts{color:var(--dim)}
+.dlg-key{color:var(--gold)}
+.dlg-val-ok{color:var(--green)}
+.dlg-val-warn{color:#ffaa40}
+.dlg-val-err{color:var(--red)}
+.dlg-val-num{color:var(--blue)}
+.dlg-val-sym{color:var(--purple)}
+.dlg-sep{border:none;border-top:1px solid var(--rim2);margin:6px 0}
+.dlg-header{font-family:var(--fd);font-size:9px;letter-spacing:.2em;color:var(--gold2);
+  padding:6px 0 4px;border-bottom:1px solid var(--rim2);margin-bottom:4px}
+
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<header>
+  <div class="live"></div>
+  <div><div class="ht">ASTROLABE VORTEX R3</div>
+       <div class="hs">POLARIS MYTHOS OS 314 · SIMULATED EPHEMERIS · GDPR COMPLIANT</div></div>
+  <div class="hjd" id="hjd">JD ···</div>
+</header>
+
+<!-- VIEW TABS -->
+<div id="tabs">
+  <div class="tab on"  onclick="setView('astrolabe')" id="tab-astrolabe">Astrolabe</div>
+  <div class="tab-sep"></div>
+  <div class="tab"     onclick="setView('orrery')"    id="tab-orrery">Orrery</div>
+  <div class="tab-sep"></div>
+  <div class="tab"     onclick="setView('timeline')"  id="tab-timeline">Timeline</div>
+  <div class="tab-sep"></div>
+  <div class="tab"     onclick="setView('dialogue')"  id="tab-dialogue">Dialogue</div>
+</div>
+
+<!-- LEFT PANEL -->
+<div class="pl">
+  <div class="pt">Planets</div>
+  <div id="plist"></div>
+  <div class="pt" style="margin-top:.4rem">Date</div>
+  <div style="display:flex;flex-direction:column;gap:5px">
+    <div class="trow"><span>Year</span><span class="tv" id="tv-y">—</span></div>
+    <input type="range" id="sl-y" min="1900" max="2100" value="2026">
+    <div class="trow"><span>Month</span><span class="tv" id="tv-m">—</span></div>
+    <input type="range" id="sl-m" min="1" max="12" value="1">
+    <div class="trow"><span>Day</span><span class="tv" id="tv-d">—</span></div>
+    <input type="range" id="sl-d" min="1" max="31" value="1">
+    <div class="trow"><span>Hour</span><span class="tv" id="tv-h">—</span></div>
+    <input type="range" id="sl-h" min="0" max="23" value="12">
+  </div>
+  <div class="pt" style="margin-top:.4rem">Display</div>
+  <div class="tgr"><span>Aspect lines</span><input type="checkbox" class="tog" id="t-a" checked></div>
+  <div class="tgr"><span>Glyphs</span>      <input type="checkbox" class="tog" id="t-g" checked></div>
+  <div class="tgr"><span>Degree ring</span> <input type="checkbox" class="tog" id="t-d" checked></div>
+  <div class="tgr"><span>Zodiac</span>      <input type="checkbox" class="tog" id="t-z" checked></div>
+  <div class="tgr"><span>Orbits</span>      <input type="checkbox" class="tog" id="t-o" checked></div>
+  <div class="tgr"><span>Animate</span>     <input type="checkbox" class="tog" id="t-r"></div>
+</div>
+
+<!-- CENTER -->
+<div id="cw">
+  <canvas id="cv-astrolabe"></canvas>
+  <canvas id="cv-orrery"    style="display:none"></canvas>
+  <canvas id="cv-timeline"  style="display:none"></canvas>
+  <div    id="dialogue-wrap"></div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="pr">
+  <div class="pt">Selected</div>
+  <div class="ic"><div class="icn" id="icn">—</div><div id="icb"></div></div>
+  <div class="pt" style="margin-top:.3rem">Aspects <span id="acnt" style="color:var(--muted)"></span></div>
+  <div id="alist"></div>
+</div>
+
+<footer>
+  <span>© 2026 Polaris Mythos OS 314</span><span>·</span>
+  <span>Simulated · No personal data · GDPR</span>
+  <span class="fr" id="fdate">—</span>
+</footer>
+</div>
+<div id="ttip"></div>
+
+<script>
+/* ════════════════════════════════════════════════
+   ENGINE
+   ════════════════════════════════════════════════ */
+function dateToJD(date) {
+  const Y=date.getUTCFullYear(),M=date.getUTCMonth()+1;
+  const D=date.getUTCDate()+date.getUTCHours()/24+date.getUTCMinutes()/1440;
+  let y=Y,m=M; if(m<=2){y--;m+=12;}
+  const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+D+B-1524.5;
+}
+function jdToDate(jd) {
+  const jd1=jd+0.5,Z=Math.floor(jd1),F=jd1-Z;
+  const A=Z<2299161?Z:(()=>{const a=Math.floor((Z-1867216.25)/36524.25);return Z+1+a-Math.floor(a/4);})();
+  const B=A+1524,C=Math.floor((B-122.1)/365.25),D=Math.floor(365.25*C);
+  const E=Math.floor((B-D)/30.6001);
+  const day=B-D-Math.floor(30.6001*E),month=E<14?E-1:E-13,year=month>2?C-4716:C-4715;
+  const h=F*24,hours=Math.floor(h),mins=(h-hours)*60,minutes=Math.floor(mins),seconds=Math.round((mins-minutes)*60);
+  return new Date(Date.UTC(year,month-1,day,hours,minutes,seconds));
+}
+
+const _ORB={
+  Sun:    [280.46646, 36000.76983, 1.0000,0.016708,0.00,  0.00, 102.94],
+  Moon:   [218.31645,481267.88134,0.00257,0.054900,5.145,125.04, 83.35],
+  Mercury:[252.25090,149474.07220,0.3871, 0.205630,7.005, 48.33, 77.46],
+  Venus:  [181.97980, 58519.21300,0.7233, 0.006770,3.395, 76.68,131.53],
+  Mars:   [355.43300, 19141.69640,1.5237, 0.093400,1.850, 49.56,336.04],
+  Jupiter:[ 34.35150,  3036.30270,5.2026, 0.048900,1.303,100.46, 14.33],
+  Saturn: [ 50.07750,  1223.50950,9.5366, 0.055700,2.489,113.72, 93.06],
+  Uranus: [314.05500,   429.87230,19.191, 0.047200,0.773, 74.00,173.00],
+  Neptune:[304.34870,   219.88330,30.069, 0.008600,1.770,131.72, 48.12],
+  Pluto:  [238.92900,   144.96000,39.482, 0.248800,17.14,110.30,224.07],
+};
+const _PERT={
+  Jupiter:T=>-0.332*Math.sin((167.2+479264.3*T)*Math.PI/180),
+  Saturn: T=> 0.812*Math.sin((169.9+954397.7*T)*Math.PI/180),
+  Uranus: T=> 0.040*Math.sin(( 98.5+153771.0*T)*Math.PI/180),
+  Neptune:T=> 0.031*Math.sin(( 99.3+ 60190.0*T)*Math.PI/180),
+};
+
+function getPlanetPosition(name,jd) {
+  const o=_ORB[name]; if(!o) throw new Error('Unknown: '+name);
+  const [L0,L1,a,e,i_d,Om_d,w_d]=o;
+  const T=(jd-2451545.0)/36525, D2R=Math.PI/180;
+  let L=(L0+L1*T)%360; if(L<0)L+=360;
+  const w=(w_d+360)%360;
+  let M=((L-w)%360+360)%360,Mr=M*D2R;
+  const eoc=(2*e-e**3/4)*Math.sin(Mr)+(5/4)*e**2*Math.sin(2*Mr)+(13/12)*e**3*Math.sin(3*Mr);
+  let trueL=(L+eoc*180/Math.PI+360)%360;
+  if(_PERT[name]) trueL=(trueL+_PERT[name](T)+360)%360;
+  const nu=((trueL-w)%360+360)%360;
+  const r=a*(1-e*e)/(1+e*Math.cos(nu*D2R));
+  const i=i_d*D2R,Om=Om_d*D2R;
+  let lat=0;
+  if(name==='Moon'){const F=((93.272+483202.017*T)%360+360)%360;lat=5.128*Math.sin(F*D2R);}
+  else{const u=(nu+w_d-Om_d)*D2R;lat=Math.asin(Math.sin(i)*Math.sin(u))/D2R;}
+  const lonRad=trueL*D2R,latRad=lat*D2R;
+  return{name,lon:trueL,lat,r,
+    x:r*Math.cos(latRad)*Math.cos(lonRad),
+    y:r*Math.cos(latRad)*Math.sin(lonRad),
+    z:r*Math.sin(latRad)};
+}
+
+function getAllPositions(jd) {
+  const out={};
+  for(const n of Object.keys(_ORB)) out[n]=getPlanetPosition(n,jd);
+  return out;
+}
+
+const _ASP=[
+  {name:'Conjunction',  sym:'☌',angle:  0,col:'rgba(255,220,80,.55)', dash:[]   },
+  {name:'Opposition',   sym:'☍',angle:180,col:'rgba(255,80,60,.50)',  dash:[]   },
+  {name:'Trine',        sym:'△',angle:120,col:'rgba(80,200,120,.45)', dash:[]   },
+  {name:'Square',       sym:'□',angle: 90,col:'rgba(255,120,60,.40)', dash:[4,3]},
+  {name:'Sextile',      sym:'⚹',angle: 60,col:'rgba(80,180,255,.40)',dash:[2,3]},
+  {name:'Quincunx',     sym:'⚻',angle:150,col:'rgba(180,100,200,.30)',dash:[1,4]},
+  {name:'Sesquiquadrate',sym:'⚼',angle:135,col:'rgba(210,130,60,.25)',dash:[3,4]},
+  {name:'Semisquare',   sym:'∠',angle: 45,col:'rgba(200,100,80,.25)', dash:[2,4]},
+  {name:'Semisextile',  sym:'⚺',angle: 30,col:'rgba(130,170,210,.22)',dash:[1,5]},
+];
+function getAspects(positions,orb) {
+  const pl=Object.keys(positions),found=[];
+  for(let i=0;i<pl.length;i++) for(let j=i+1;j<pl.length;j++){
+    const lonA=positions[pl[i]].lon,lonB=positions[pl[j]].lon;
+    let diff=Math.abs(lonA-lonB); if(diff>180)diff=360-diff;
+    for(const d of _ASP){const delta=Math.abs(diff-d.angle);
+      if(delta<=orb){found.push({p1:pl[i],p2:pl[j],type:d.name,sym:d.sym,
+        angle:d.angle,orb:+delta.toFixed(2),applying:lonA<lonB,col:d.col,dash:d.dash});break;}}
+  }
+  return found.sort((a,b)=>a.orb-b.orb);
+}
+
+/* ── vortexBridge (inline) ── */
+function vortexBridge({coreA,coreB}) {
+  return {
+    position:        coreA.positions,
+    aspects:         coreA.aspects,
+    interpretations: coreB || [],
+    state:           "superposition",
+    deterministic:   false,
+    merged:          false,
+    _coreA:          coreA,
+    _coreB:          coreB,
+    collapse(strategy="weighted") {
+      this.state="resolved"; this.merged=true;
+      const icp = (typeof coreB?.icp === 'number') ? coreB.icp : 0;
+      return {strategy,icp,state:"resolved",jd:coreA.jd,
+              aspects:coreA.aspects.length,planets:Object.keys(coreA.positions).length};
+    }
+  };
+}
+
+/* ════════════════════════════════════════════════
+   PLANET META
+   ════════════════════════════════════════════════ */
+const SIGNS=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+const SIGNAMES=['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+                'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const PMETA={
+  Sun:    {sym:'☉',col:'#FFD700',r_au:1.00},Moon:   {sym:'☽',col:'#C8D8F0',r_au:0.003},
+  Mercury:{sym:'☿',col:'#90B8C8',r_au:0.39},Venus:  {sym:'♀',col:'#FFB880',r_au:0.72},
+  Mars:   {sym:'♂',col:'#FF5535',r_au:1.52},Jupiter:{sym:'♃',col:'#E0C070',r_au:5.20},
+  Saturn: {sym:'♄',col:'#C0A850',r_au:9.54},Uranus: {sym:'⛢',col:'#70D0E0',r_au:19.2},
+  Neptune:{sym:'♆',col:'#5070FF',r_au:30.1},Pluto:  {sym:'♇',col:'#C070A0',r_au:39.5},
+};
+function lonToSign(lon){const i=Math.floor(lon/30);return{sym:SIGNS[i],name:SIGNAMES[i],deg:(lon%30).toFixed(2)};}
+
+/* ════════════════════════════════════════════════
+   PSYCHOHISTORY CYCLES (for renderTimeline)
+   ════════════════════════════════════════════════ */
+const CYCLES=[
+  {name:"Kondratiev",      period:54.0,  refJD:2443510,col:"#c8a44a",layer:"economic"},
+  {name:"Turchin",         period:50.0,  refJD:2440588,col:"#a060ff",layer:"elite"},
+  {name:"Strauss-Howe",    period:80.0,  refJD:2434012,col:"#70D0E0",layer:"saeculum"},
+  {name:"Jupiter-Saturn",  period:19.86, refJD:2451549,col:"#E0C070",layer:"political"},
+  {name:"Saturn-Pluto",    period:33.49, refJD:2458869,col:"#C070A0",layer:"structural"},
+  {name:"Uranus-Pluto",    period:127.0, refJD:2438456,col:"#ff5535",layer:"revolutionary"},
+  {name:"Jupiter-Neptune", period:12.78, refJD:2454109,col:"#5070FF",layer:"cultural"},
+];
+
+/* ════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════ */
+const cvA=document.getElementById('cv-astrolabe');
+const cvO=document.getElementById('cv-orrery');
+const cvT=document.getElementById('cv-timeline');
+const ctxA=cvA.getContext('2d');
+const ctxO=cvO.getContext('2d');
+const ctxT=cvT.getContext('2d');
+const wrap=document.getElementById('cw');
+const ttip=document.getElementById('ttip');
+
+let W,H,cx,cy,R;
+let curDate=new Date(),jd,pos,asps,bridge;
+let selPlanet=null,scrPos={},animOff=0;
+let currentView='astrolabe';
+const opts={a:true,g:true,d:true,z:true,o:true,r:false};
+
+/* ════════════════════════════════════════════════
+   VIEW SWITCHER
+   ════════════════════════════════════════════════ */
+function setView(v) {
+  currentView=v;
+  ['astrolabe','orrery','timeline','dialogue'].forEach(n=>{
+    document.getElementById('tab-'+n).classList.toggle('on',n===v);
+  });
+  cvA.style.display   = v==='astrolabe' ? 'block' : 'none';
+  cvO.style.display   = v==='orrery'    ? 'block' : 'none';
+  cvT.style.display   = v==='timeline'  ? 'block' : 'none';
+  document.getElementById('dialogue-wrap').classList.toggle('on', v==='dialogue');
+  render();
+}
+window.setView=setView;
+
+/* ════════════════════════════════════════════════
+   RESIZE
+   ════════════════════════════════════════════════ */
+function resize() {
+  const rc=wrap.getBoundingClientRect();
+  W=rc.width; H=rc.height;
+  [cvA,cvO,cvT].forEach(c=>{c.width=W;c.height=H;});
+  cx=W/2; cy=H/2; R=Math.min(W,H)*0.4;
+  render();
+}
+
+/* ════════════════════════════════════════════════
+   MAIN RENDER DISPATCH
+   ════════════════════════════════════════════════ */
+function render() {
+  jd  = dateToJD(curDate);
+  pos = getAllPositions(jd);
+  if(opts.r) Object.values(pos).forEach(p=>{p.lon=(p.lon+animOff)%360;
+    const a=p.lon*Math.PI/180;p.x=p.r*Math.cos(a);p.y=p.r*Math.sin(a);});
+  asps = getAspects(pos,6);
+  bridge = vortexBridge({coreA:{jd,positions:pos,aspects:asps},coreB:null});
+  document.getElementById('hjd').textContent='JD '+jd.toFixed(4);
+  document.getElementById('fdate').textContent=jdToDate(jd).toUTCString().slice(0,25);
+  updatePList(); updateAList();
+  if(currentView==='astrolabe') renderAstrolabe(pos);
+  if(currentView==='orrery')    renderOrrery(pos);
+  if(currentView==='timeline')  renderTimeline(CYCLES,jd);
+  if(currentView==='dialogue')  renderDialogue(bridge,pos,asps);
+}
+
+/* ════════════════════════════════════════════════
+   RENDERER 1 — renderAstrolabe(positions)
+   Zodiac wheel with aspects
+   ════════════════════════════════════════════════ */
+function renderAstrolabe(positions) {
+  const ctx=ctxA;
+  ctx.clearRect(0,0,W,H);
+  scrPos={};
+  // bg
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.5);
+  g.addColorStop(0,'rgba(10,16,44,.7)');g.addColorStop(.6,'rgba(4,6,16,.4)');g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // rings
+  [[1.00,'rgba(200,164,74,.4)',1.2],[.965,'rgba(200,164,74,.2)',.6],
+   [.850,'rgba(200,164,74,.12)',.5],[.300,'rgba(200,164,74,.06)',.4]].forEach(([f,c,w])=>{
+    ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();ctx.arc(cx,cy,R*f,0,Math.PI*2);ctx.stroke();
+  });
+  // zodiac
+  if(opts.z) {
+    for(let i=0;i<12;i++){
+      const a1=(i*30-90)*Math.PI/180,a2=((i+1)*30-90)*Math.PI/180;
+      if(i%2===0){ctx.fillStyle='rgba(200,164,74,.025)';ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R*.85,a1,a2);ctx.closePath();ctx.fill();}
+      ctx.strokeStyle='rgba(200,164,74,.18)';ctx.lineWidth=.5;
+      ctx.beginPath();ctx.moveTo(cx+R*.3*Math.cos(a1),cy+R*.3*Math.sin(a1));
+      ctx.lineTo(cx+R*.85*Math.cos(a1),cy+R*.85*Math.sin(a1));ctx.stroke();
+      const am=((i+.5)*30-90)*Math.PI/180,rm=R*.905;
+      ctx.fillStyle='rgba(200,164,74,.5)';ctx.font='9px serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(SIGNS[i],cx+rm*Math.cos(am),cy+rm*Math.sin(am));
+    }
+  }
+  // degree ring
+  if(opts.d){
+    for(let d=0;d<360;d++){
+      const ang=(d-90)*Math.PI/180,maj=d%30===0,mid=d%10===0;
+      const r1=R*(maj?.77:mid?.80:.83),r2=R*.85;
+      ctx.strokeStyle=maj?'rgba(200,164,74,.5)':mid?'rgba(200,164,74,.22)':'rgba(200,164,74,.07)';
+      ctx.lineWidth=maj?1:.5;
+      ctx.beginPath();ctx.moveTo(cx+r1*Math.cos(ang),cy+r1*Math.sin(ang));
+      ctx.lineTo(cx+r2*Math.cos(ang),cy+r2*Math.sin(ang));ctx.stroke();
+    }
+  }
+  // pre-compute positions for aspect drawing
+  const PR=R*.72;
+  Object.entries(positions).forEach(([name,p])=>{
+    const ang=(p.lon-90)*Math.PI/180;
+    scrPos[name]={x:cx+PR*Math.cos(ang),y:cy+PR*Math.sin(ang)};
+  });
+  // aspects
+  if(opts.a) asps.forEach(a=>{
+    const s1=scrPos[a.p1],s2=scrPos[a.p2];if(!s1||!s2)return;
+    const hi=selPlanet&&(a.p1===selPlanet||a.p2===selPlanet);
+    ctx.strokeStyle=hi?a.col.replace(/[\d.]+\)$/,'.85)'):a.col;
+    ctx.lineWidth=hi?1.3:.6;ctx.setLineDash(a.dash);
+    ctx.beginPath();ctx.moveTo(s1.x,s1.y);ctx.lineTo(s2.x,s2.y);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+  // planets
+  Object.entries(positions).forEach(([name,p])=>{
+    const sp=scrPos[name];if(!sp)return;
+    const {x:px,y:py}=sp;
+    const m=PMETA[name],isSel=selPlanet===name;
+    const baseR=name==='Sun'?8:name==='Moon'?6:4.5;
+    const rScale=name==='Sun'?1:Math.max(0.5,Math.min(1.4,2.0/(p.r+0.5)));
+    const r=baseR*rScale;
+    if(isSel||name==='Sun'){
+      const gl=ctx.createRadialGradient(px,py,0,px,py,r*4);
+      gl.addColorStop(0,m.col+'45');gl.addColorStop(1,m.col+'00');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(px,py,r*4,0,Math.PI*2);ctx.fill();
+    }
+    const sg=ctx.createRadialGradient(px,py,0,px,py,r);
+    sg.addColorStop(0,'#fff');sg.addColorStop(.35,m.col);sg.addColorStop(1,m.col+'70');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);ctx.fill();
+    if(isSel){ctx.strokeStyle=m.col;ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py,r+5,0,Math.PI*2);ctx.stroke();}
+    if(opts.g){
+      const lx=px+(px<cx?-13:13),ly=py+(py<cy?-10:10);
+      ctx.font='bold 10px serif';ctx.textAlign=px<cx?'right':'left';
+      ctx.textBaseline='middle';ctx.fillStyle=m.col;ctx.fillText(m.sym,lx,ly);
+    }
+  });
+  // core
+  ctx.strokeStyle='rgba(200,164,74,.35)';ctx.lineWidth=.8;
+  [7,12,18].forEach(r=>{ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();});
+  ctx.strokeStyle='rgba(200,164,74,.18)';ctx.lineWidth=.5;
+  [0,45,90,135].forEach(d=>{
+    const a=d*Math.PI/180;
+    ctx.beginPath();ctx.moveTo(cx+21*Math.cos(a),cy+21*Math.sin(a));
+    ctx.lineTo(cx+R*.28*Math.cos(a),cy+R*.28*Math.sin(a));ctx.stroke();
+  });
+  ctx.fillStyle='rgba(200,164,74,.3)';ctx.font='bold 7px Cinzel,serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('R3',cx,cy);
+}
+
+/* ════════════════════════════════════════════════
+   RENDERER 2 — renderOrrery(positions)
+   Heliocentric top-down view using x,y,z coords
+   ════════════════════════════════════════════════ */
+function renderOrrery(positions) {
+  const ctx=ctxO;
+  ctx.clearRect(0,0,W,H);
+  scrPos={};
+
+  // Background
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.4);
+  g.addColorStop(0,'rgba(8,14,40,.8)');g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  // Scale: fit Neptune (30 AU) in R * 0.9
+  // Use log scale for readability: inner planets visible
+  const maxAU=32;
+  function auToScreen(au_x,au_y) {
+    // Log scale: compress outer planets
+    const dist=Math.sqrt(au_x**2+au_y**2);
+    const logDist=dist===0?0:Math.log1p(dist)/Math.log1p(maxAU);
+    const screenR=logDist*R*0.88;
+    const angle=Math.atan2(au_y,au_x);
+    return{x:cx+screenR*Math.cos(angle),y:cy+screenR*Math.sin(angle),sr:screenR};
+  }
+
+  // Orbit rings (log-scaled)
+  if(opts.o){
+    Object.entries(PMETA).forEach(([name,m])=>{
+      if(name==='Moon') return;
+      const au=m.r_au;
+      const logR=Math.log1p(au)/Math.log1p(maxAU)*R*0.88;
+      ctx.strokeStyle='rgba(200,164,74,0.07)';
+      ctx.lineWidth=0.5;ctx.setLineDash([2,4]);
+      ctx.beginPath();ctx.arc(cx,cy,logR,0,Math.PI*2);ctx.stroke();
+      ctx.setLineDash([]);
+    });
+  }
+
+  // Ecliptic grid lines (4 cardinal axes)
+  ctx.strokeStyle='rgba(200,164,74,.08)';ctx.lineWidth=0.5;
+  [0,90,180,270].forEach(d=>{
+    const a=d*Math.PI/180;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+R*0.92*Math.cos(a),cy+R*0.92*Math.sin(a));ctx.stroke();
+  });
+
+  // Outer boundary
+  ctx.strokeStyle='rgba(200,164,74,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,R*.92,0,Math.PI*2);ctx.stroke();
+
+  // AU labels
+  [1,5,10,20,30].forEach(au=>{
+    const logR=Math.log1p(au)/Math.log1p(maxAU)*R*0.88;
+    ctx.fillStyle='rgba(200,164,74,.25)';ctx.font='7px '+getComputedStyle(document.body).fontFamily;
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText(au+'AU',cx+logR+2,cy-10);
+  });
+
+  // Sun at center
+  const sunGl=ctx.createRadialGradient(cx,cy,0,cx,cy,18);
+  sunGl.addColorStop(0,'rgba(255,220,80,.6)');
+  sunGl.addColorStop(1,'rgba(255,180,0,0)');
+  ctx.fillStyle=sunGl;ctx.beginPath();ctx.arc(cx,cy,18,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#FFD700';ctx.beginPath();ctx.arc(cx,cy,6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,220,80,.6)';ctx.font='10px serif';
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('☉',cx+8,cy);
+
+  // Planets — use heliocentric x,y directly
+  Object.entries(positions).forEach(([name,p])=>{
+    if(name==='Sun'||name==='Moon') return;
+    const sp=auToScreen(p.x,p.y);
+    scrPos[name]={x:sp.x,y:sp.y};
+    const m=PMETA[name];
+    const isSel=selPlanet===name;
+    const r=isSel?7:5;
+
+    // Trail line from center (orbit context)
+    ctx.strokeStyle=m.col+'22';ctx.lineWidth=0.4;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(sp.x,sp.y);ctx.stroke();
+
+    if(isSel){
+      const gl=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,r*4);
+      gl.addColorStop(0,m.col+'50');gl.addColorStop(1,m.col+'00');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(sp.x,sp.y,r*4,0,Math.PI*2);ctx.fill();
+    }
+
+    const sg=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,r);
+    sg.addColorStop(0,'#fff');sg.addColorStop(.4,m.col);sg.addColorStop(1,m.col+'60');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sp.x,sp.y,r,0,Math.PI*2);ctx.fill();
+
+    if(isSel){ctx.strokeStyle=m.col;ctx.lineWidth=1;ctx.beginPath();ctx.arc(sp.x,sp.y,r+4,0,Math.PI*2);ctx.stroke();}
+
+    // Glyph + distance label
+    if(opts.g){
+      const lx=sp.x+(sp.x<cx?-11:11),ly=sp.y-4;
+      ctx.font='9px serif';ctx.textAlign=sp.x<cx?'right':'left';ctx.textBaseline='bottom';
+      ctx.fillStyle=m.col;ctx.fillText(m.sym,lx,ly);
+    }
+    ctx.font='7px Share Tech Mono,monospace';ctx.textAlign=sp.x<cx?'right':'left';
+    ctx.textBaseline='top';ctx.fillStyle=m.col+'99';
+    ctx.fillText(p.r.toFixed(2)+'AU',sp.x+(sp.x<cx?-11:11),sp.y+4);
+
+    // z indicator (vertical displacement from ecliptic plane)
+    if(Math.abs(p.z)>0.1){
+      const zH=Math.min(Math.abs(p.z)*8,12);
+      ctx.strokeStyle=p.z>0?'rgba(80,220,140,.5)':'rgba(220,80,80,.5)';
+      ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(sp.x,sp.y);
+      ctx.lineTo(sp.x,sp.y-(p.z>0?zH:-zH));ctx.stroke();
+    }
+  });
+
+  // Moon (geo position, near Earth)
+  const earth_p=positions['Mars']; // placeholder — moon near Sun in helio
+  const moon_sp=auToScreen(0.002*Math.cos(positions.Moon?.lon*Math.PI/180??0),
+                            0.002*Math.sin(positions.Moon?.lon*Math.PI/180??0));
+  scrPos['Moon']={x:moon_sp.x,y:moon_sp.y};
+
+  // Label
+  ctx.fillStyle='rgba(200,164,74,.35)';ctx.font='bold 8px Cinzel,serif';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('HELIOCENTRIC · ECLIPTIC PLANE · LOG SCALE',cx,10);
+
+  // z legend
+  ctx.font='7.5px Share Tech Mono,monospace';ctx.textAlign='left';
+  ctx.fillStyle='rgba(80,220,140,.5)';ctx.fillText('▲ z+ above ecliptic',12,H-40);
+  ctx.fillStyle='rgba(220,80,80,.5)';ctx.fillText('▼ z− below ecliptic',12,H-28);
+}
+
+/* ════════════════════════════════════════════════
+   RENDERER 3 — renderTimeline(cycles, jd)
+   Psychohistory cycles as horizontal wave bars
+   ════════════════════════════════════════════════ */
+function renderTimeline(cycles, currentJD) {
+  const ctx=ctxT;
+  ctx.clearRect(0,0,W,H);
+
+  const JD_YEAR=365.25;
+  const spanYears=200;                       // window: ±100 years
+  const spanJD=spanYears*JD_YEAR;
+  const startJD=currentJD-spanJD/2;
+
+  const pad={l:90,r:30,t:36,b:40};
+  const plotW=W-pad.l-pad.r;
+  const rowH=Math.min(52,(H-pad.t-pad.b)/cycles.length);
+
+  function jdToX(jd){return pad.l+(jd-startJD)/spanJD*plotW;}
+  const nowX=jdToX(currentJD);
+
+  // Background
+  ctx.fillStyle='rgba(4,5,13,.95)';ctx.fillRect(0,0,W,H);
+
+  // Title
+  ctx.fillStyle='rgba(200,164,74,.7)';ctx.font='bold 9px Cinzel,serif';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('PSYCHOHISTORY CYCLES — TEMPORAL FIELD',W/2,10);
+
+  // Century grid
+  const firstYear=Math.ceil((jdToDate(startJD).getUTCFullYear())/10)*10;
+  for(let y=firstYear;y<firstYear+spanYears+10;y+=10){
+    const yJD=dateToJD(new Date(Date.UTC(y,0,1)));
+    const x=jdToX(yJD);
+    if(x<pad.l||x>W-pad.r)continue;
+    const isCentury=y%100===0,isDecade=y%50===0;
+    ctx.strokeStyle=isCentury?'rgba(200,164,74,.3)':isDecade?'rgba(200,164,74,.12)':'rgba(200,164,74,.05)';
+    ctx.lineWidth=isCentury?1:.5;
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,H-pad.b);ctx.stroke();
+    if(y%20===0){
+      ctx.fillStyle='rgba(200,164,74,.35)';ctx.font='7px Share Tech Mono,monospace';
+      ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(y,x,H-pad.b+4);
+    }
+  }
+
+  // Cycle rows
+  cycles.forEach((c,i)=>{
+    const y0=pad.t+i*rowH+2,y1=y0+rowH-4;
+    const rowCy=(y0+y1)/2;
+    const periodJD=c.period*JD_YEAR;
+
+    // Row background
+    ctx.fillStyle='rgba(255,255,255,.015)';
+    ctx.fillRect(pad.l,y0,plotW,rowH-4);
+
+    // Cycle sine wave
+    ctx.save();
+    ctx.beginPath();ctx.rect(pad.l,y0,plotW,rowH-4);ctx.clip();
+
+    const amp=(rowH-8)/2;
+    ctx.beginPath();
+    let first=true;
+    for(let px=pad.l;px<=W-pad.r;px+=2){
+      const pJD=startJD+(px-pad.l)/plotW*spanJD;
+      const elapsed=((pJD-c.refJD)%periodJD+periodJD)%periodJD;
+      const phi=elapsed/periodJD;
+      const wave=Math.cos(phi*2*Math.PI);
+      const py=rowCy-wave*amp;
+      if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle=c.col+'cc';ctx.lineWidth=1.5;ctx.stroke();
+
+    // Fill above/below midline
+    ctx.beginPath();
+    ctx.moveTo(pad.l,rowCy);
+    for(let px=pad.l;px<=W-pad.r;px+=2){
+      const pJD=startJD+(px-pad.l)/plotW*spanJD;
+      const elapsed=((pJD-c.refJD)%periodJD+periodJD)%periodJD;
+      const phi=elapsed/periodJD;
+      const wave=Math.cos(phi*2*Math.PI);
+      ctx.lineTo(px,rowCy-wave*amp);
+    }
+    ctx.lineTo(W-pad.r,rowCy);ctx.closePath();
+    const grad=ctx.createLinearGradient(0,y0,0,y1);
+    grad.addColorStop(0,c.col+'40');grad.addColorStop(.5,c.col+'08');grad.addColorStop(1,c.col+'40');
+    ctx.fillStyle=grad;ctx.fill();
+
+    // Current phase marker
+    const cElapsed=((currentJD-c.refJD)%periodJD+periodJD)%periodJD;
+    const cPhi=cElapsed/periodJD;
+    const cWave=Math.cos(cPhi*2*Math.PI);
+    ctx.fillStyle=c.col;
+    ctx.beginPath();ctx.arc(nowX,rowCy-cWave*amp,4,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=.5;ctx.stroke();
+
+    ctx.restore();
+
+    // Row label
+    ctx.fillStyle=c.col+'dd';ctx.font='8px Cinzel,serif';
+    ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText(c.name,pad.l-4,rowCy);
+
+    // Period label
+    ctx.fillStyle='rgba(200,164,74,.3)';ctx.font='7px Share Tech Mono,monospace';
+    ctx.textAlign='right';ctx.fillText(c.period+'yr',pad.l-4,rowCy+9);
+
+    // Current phase label
+    const phLabel=cPhi<.10?'inception':cPhi<.25?'expansion':cPhi<.50?'accel':
+                  cPhi<.75?'maturation':cPhi<.90?'contraction':'dissolution';
+    ctx.fillStyle=c.col+'99';ctx.font='7px Share Tech Mono,monospace';
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText(phLabel+' '+Math.round(cPhi*100)+'%',nowX+6,y0+2);
+
+    // Midline
+    ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=.5;ctx.setLineDash([2,4]);
+    ctx.beginPath();ctx.moveTo(pad.l,rowCy);ctx.lineTo(W-pad.r,rowCy);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // NOW line
+  ctx.strokeStyle='rgba(255,220,80,.6)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(nowX,pad.t);ctx.lineTo(nowX,H-pad.b);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,220,80,.8)';ctx.font='bold 8px Cinzel,serif';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('NOW',nowX,pad.t-16);
+
+  // ICP bar at bottom
+  const icpY=H-pad.b+16;
+  let icpSum=0,wSum=0;
+  cycles.forEach(c=>{
+    const periodJD=c.period*JD_YEAR;
+    const elapsed=((currentJD-c.refJD)%periodJD+periodJD)%periodJD;
+    const phi=elapsed/periodJD;
+    const energy=Math.cos(phi*2*Math.PI);
+    icpSum+=energy;wSum++;
+  });
+  const icp=wSum>0?+(icpSum/wSum*100).toFixed(1):0;
+  const icpBarW=Math.min(Math.abs(icp)/100*plotW*.4,plotW*.4);
+  ctx.fillStyle='rgba(200,164,74,.15)';
+  ctx.fillRect(pad.l,icpY-6,plotW,12);
+  ctx.fillStyle=icp>=0?'rgba(80,200,120,.6)':'rgba(255,80,60,.6)';
+  ctx.fillRect(icp>=0?nowX:nowX-icpBarW,icpY-5,icpBarW,10);
+  ctx.fillStyle='rgba(200,164,74,.8)';ctx.font='bold 8px Cinzel,serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('ICP '+(icp>=0?'+':'')+icp,W/2,icpY);
+}
+
+/* ════════════════════════════════════════════════
+   RENDERER 4 — renderDialogue(state)
+   Terminal readout of bridge state
+   ════════════════════════════════════════════════ */
+function renderDialogue(bridgeState,positions,aspects) {
+  const el=document.getElementById('dialogue-wrap');
+  const ts=new Date().toISOString().slice(11,23);
+  const lines=[];
+
+  function line(key,val,cls='dlg-val-ok'){
+    lines.push(`<div class="dlg-line"><span class="dlg-ts">[${ts}]</span> `+
+      `<span class="dlg-key">${key.padEnd(22,' ')}</span>`+
+      `<span class="${cls}">${val}</span></div>`);
+  }
+  function sep(){lines.push('<hr class="dlg-sep">');}
+  function hdr(t){lines.push(`<div class="dlg-header">${t}</div>`);}
+
+  hdr('VORTEX BRIDGE — STATE READOUT');
+  line('bridge.state',        bridgeState.state,                  'dlg-val-warn');
+  line('bridge.deterministic',String(bridgeState.deterministic),  'dlg-val-ok');
+  line('bridge.merged',       String(bridgeState.merged),         'dlg-val-ok');
+
+  sep();
+  hdr('CORE A — ENGINE');
+  line('jd',                  jd.toFixed(6),                      'dlg-val-num');
+  line('date_utc',            jdToDate(jd).toISOString().slice(0,16)+'Z','dlg-val-ok');
+  line('planets_loaded',      Object.keys(positions).length+'',   'dlg-val-num');
+  line('aspects_active',      aspects.length+'',                  'dlg-val-num');
+
+  sep();
+  hdr('POSITIONS');
+  Object.entries(positions).forEach(([name,p])=>{
+    const s=lonToSign(p.lon);
+    const m=PMETA[name];
+    line(m.sym+' '+name.padEnd(9),
+      `lon ${p.lon.toFixed(2).padStart(7)}°  `+
+      `${s.sym} ${s.name.padEnd(12)} `+
+      `r ${p.r.toFixed(3)} AU  `+
+      `z ${p.z>=0?'+':''}${p.z.toFixed(3)}`,
+      'dlg-val-sym');
+  });
+
+  sep();
+  hdr('ASPECTS  (orb ≤ 6°)');
+  if(!aspects.length){
+    line('aspects','none found','dlg-val-warn');
+  } else {
+    aspects.slice(0,12).forEach(a=>{
+      const m1=PMETA[a.p1],m2=PMETA[a.p2];
+      line(m1.sym+' '+a.p1.padEnd(8),
+        `${a.sym} ${a.type.padEnd(16)} ${m2.sym} ${a.p2.padEnd(8)} orb ${a.orb}°`,
+        a.type==='Trine'||a.type==='Sextile'?'dlg-val-ok':
+        a.type==='Square'||a.type==='Opposition'?'dlg-val-err':'dlg-val-warn');
+    });
+    if(aspects.length>12) line('…',`${aspects.length-12} more aspects`,'dlg-val-warn');
+  }
+
+  sep();
+  hdr('CORE B — MODULES  [DISABLED by VORTEX_CONFIG]');
+  const modules=['lunar','mythological','psychohistory','archetypal','rhythmic','semantic','prospective'];
+  modules.forEach(m=>{
+    line('CORE_B.'+m.padEnd(14),'false','dlg-val-warn');
+  });
+
+  sep();
+  hdr('BRIDGE INSTRUCTIONS');
+  line('bridge.observe("icp")','call to read without collapse','dlg-val-ok');
+  line('bridge.collapse("weighted")','resolves superposition','dlg-val-ok');
+  line('bridge.collapse("deterministic")','coreA wins','dlg-val-ok');
+  line('bridge.collapse("symbolic")','coreB drives','dlg-val-ok');
+  line('bridge.state after collapse','→ "resolved"','dlg-val-num');
+
+  sep();
+  hdr('SYSTEM');
+  line('VORTEX_CONFIG.MODE',      'DUAL',             'dlg-val-ok');
+  line('VORTEX_CONFIG.BRIDGE',    'SUPERPOSITION',    'dlg-val-warn');
+  line('VORTEX_CONFIG.MERGE',     'false',            'dlg-val-warn');
+  line('renderer',                'renderDialogue(state)','dlg-val-ok');
+  line('© 2026','Polaris Mythos OS 314 · GDPR compliant','dlg-val-sym');
+
+  el.innerHTML=lines.join('');
+}
+
+/* ════════════════════════════════════════════════
+   UI UPDATES
+   ════════════════════════════════════════════════ */
+function updatePList() {
+  document.getElementById('plist').innerHTML=Object.entries(pos).map(([n,p])=>{
+    const s=lonToSign(p.lon),m=PMETA[n];
+    return`<div class="pr-row ${selPlanet===n?'on':''}" onclick="sel('${n}')">
+      <span class="psym" style="color:${m.col}">${m.sym}</span>
+      <span class="pnm">${n}</span>
+      <span class="psg">${s.sym}</span>
+      <span class="pdg">${(+s.deg).toFixed(1)}°</span>
+    </div>`;
+  }).join('');
+}
+
+function sel(name) {
+  selPlanet=selPlanet===name?null:name;
+  if(selPlanet){
+    const p=pos[name],s=lonToSign(p.lon),m=PMETA[name];
+    document.getElementById('icn').textContent=m.sym+' '+name;
+    document.getElementById('icn').style.color=m.col;
+    document.getElementById('icb').innerHTML=`
+      <div class="icr"><span class="ick">Longitude</span><span>${p.lon.toFixed(4)}°</span></div>
+      <div class="icr"><span class="ick">Latitude</span><span>${p.lat.toFixed(4)}°</span></div>
+      <div class="icr"><span class="ick">Sign</span><span>${s.sym} ${s.name} ${(+s.deg).toFixed(2)}°</span></div>
+      <div class="icr"><span class="ick">r (AU)</span><span>${p.r.toFixed(6)}</span></div>
+      <div class="icr"><span class="ick">x</span><span>${p.x.toFixed(6)}</span></div>
+      <div class="icr"><span class="ick">y</span><span>${p.y.toFixed(6)}</span></div>
+      <div class="icr"><span class="ick">z</span><span>${p.z.toFixed(6)}</span></div>
+      <div class="icr"><span class="ick">JD</span><span>${jd.toFixed(4)}</span></div>`;
+  } else {
+    document.getElementById('icn').textContent='—';
+    document.getElementById('icb').innerHTML='';
+  }
+  render();
+}
+window.sel=sel;
+
+function updateAList() {
+  document.getElementById('acnt').textContent='('+asps.length+')';
+  const el=document.getElementById('alist');
+  if(!asps.length){el.innerHTML='<div style="font-size:8.5px;color:var(--muted);padding:3px">No aspects</div>';return;}
+  el.innerHTML=asps.map(a=>{
+    const m1=PMETA[a.p1],m2=PMETA[a.p2];
+    const hi=selPlanet&&(a.p1===selPlanet||a.p2===selPlanet);
+    return`<div class="ar" style="${hi?'background:rgba(200,164,74,.07)':''}">
+      <span class="asy" style="color:${m1.col}">${m1.sym}</span>
+      <span class="asy" style="color:${m2.col}">${m2.sym}</span>
+      <span class="asy">${a.sym}</span>
+      <span class="ap">${a.type}</span>
+      <span class="ao">${a.orb}°</span>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════
+   CANVAS EVENTS
+   ════════════════════════════════════════════════ */
+function getActiveCanvas(){
+  return currentView==='astrolabe'?cvA:currentView==='orrery'?cvO:null;
+}
+
+document.getElementById('cw').addEventListener('mousemove',e=>{
+  const cv=getActiveCanvas();if(!cv)return;
+  const rc=cv.getBoundingClientRect(),mx=e.clientX-rc.left,my=e.clientY-rc.top;
+  let found=null;
+  for(const[name,sp] of Object.entries(scrPos)){
+    if(Math.hypot(mx-sp.x,my-sp.y)<14){found=name;break;}
+  }
+  if(found){
+    const m=PMETA[found],p=pos[found],s=lonToSign(p.lon);
+    ttip.innerHTML=`<span style="color:${m.col}">${m.sym} ${found}</span> — ${(+s.deg).toFixed(2)}° ${s.sym} ${s.name} · r ${p.r.toFixed(3)} AU`;
+    ttip.classList.add('v');ttip.style.left=(e.clientX+14)+'px';ttip.style.top=(e.clientY-8)+'px';
+    cv.style.cursor='pointer';
+  } else{ttip.classList.remove('v');if(cv)cv.style.cursor='default';}
+});
+
+document.getElementById('cw').addEventListener('click',e=>{
+  const cv=getActiveCanvas();if(!cv)return;
+  const rc=cv.getBoundingClientRect(),mx=e.clientX-rc.left,my=e.clientY-rc.top;
+  for(const[name,sp] of Object.entries(scrPos)){
+    if(Math.hypot(mx-sp.x,my-sp.y)<14){sel(name);return;}
+  }
+  sel(null);
+});
+
+document.getElementById('cw').addEventListener('mouseleave',()=>ttip.classList.remove('v'));
+
+/* ════════════════════════════════════════════════
+   CONTROLS
+   ════════════════════════════════════════════════ */
+function fromSliders(){
+  const y=+document.getElementById('sl-y').value,m=+document.getElementById('sl-m').value;
+  const d=+document.getElementById('sl-d').value,h=+document.getElementById('sl-h').value;
+  document.getElementById('tv-y').textContent=y;
+  document.getElementById('tv-m').textContent=String(m).padStart(2,'0');
+  document.getElementById('tv-d').textContent=String(d).padStart(2,'0');
+  document.getElementById('tv-h').textContent=String(h).padStart(2,'0')+'h';
+  curDate=new Date(Date.UTC(y,m-1,d,h));render();
+}
+['sl-y','sl-m','sl-d','sl-h'].forEach(id=>document.getElementById(id).addEventListener('input',fromSliders));
+document.getElementById('t-a').onchange=e=>{opts.a=e.target.checked;render()};
+document.getElementById('t-g').onchange=e=>{opts.g=e.target.checked;render()};
+document.getElementById('t-d').onchange=e=>{opts.d=e.target.checked;render()};
+document.getElementById('t-z').onchange=e=>{opts.z=e.target.checked;render()};
+document.getElementById('t-o').onchange=e=>{opts.o=e.target.checked;render()};
+document.getElementById('t-r').onchange=e=>{opts.r=e.target.checked;if(e.target.checked)animLoop()};
+function animLoop(){if(!opts.r)return;animOff=(animOff+.06)%360;render();requestAnimationFrame(animLoop);}
+
+/* ════════════════════════════════════════════════
+   WINDOW API
+   ════════════════════════════════════════════════ */
+Object.assign(window,{dateToJD,jdToDate,getPlanetPosition,getAllPositions,getAspects,
+  renderOrrery,renderTimeline,renderDialogue,vortexBridge,
+  getPos:()=>pos, getAsps:()=>asps, getBridge:()=>bridge});
+
+/* ════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════ */
+const now=new Date();
+document.getElementById('sl-y').value=now.getUTCFullYear();
+document.getElementById('sl-m').value=now.getUTCMonth()+1;
+document.getElementById('sl-d').value=now.getUTCDate();
+document.getElementById('sl-h').value=now.getUTCHours();
+const ro=new ResizeObserver(resize);ro.observe(wrap);
+resize();fromSliders();
+</script>
+</body>
+</html>
